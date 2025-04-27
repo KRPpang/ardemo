@@ -1,34 +1,54 @@
+<!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8">
-    <title>Simple WebAR VR Headset</title>
-
-    <!-- A-Frame core -->
+    <title>A-Frame AR-in-VR Demo</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-
-    <!-- AR.js plugin for A-Frame -->
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.min.js"></script>
 </head>
 
-<body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
+<body>
+    <!-- Scene with VR UI enabled -->
+    <a-scene vr-mode-ui="enabled: true" embedded>
 
-        <!-- Define the marker -->
-        <a-marker preset="hiro">
+        <!-- Preload your webcam as a video asset -->
+        <a-assets>
+            <video id="camera" autoplay playsinline webkit-playsinline crossorigin="anonymous">
+            </video>
+        </a-assets>
 
-            <!-- Load a 3D VR headset model -->
-            <a-entity
-                gltf-model="https://cdn.glitch.global/5aa8de76-bd36-4fb1-a011-82f65a9e15a3/vr_headset.glb?v=1685940047867"
-                scale="0.5 0.5 0.5" rotation="0 0 0" position="0 0 0">
-            </a-entity>
+        <!-- Sky sphere showing the webcam feed -->
+        <a-sky material="shader: flat; src: #camera; side: back">
+        </a-sky>
 
-        </a-marker>
+        <!-- A semi-transparent box floating in front of you -->
+        <a-box position="0 1.5 -3" rotation="0 45 0" material="color: blue; opacity: 0.7">
+        </a-box>
 
-        <!-- Standard AR camera -->
-        <a-entity camera></a-entity>
+        <!-- A faint ground plane for context -->
+        <a-plane rotation="-90 0 0" width="10" height="10" material="color: green; opacity: 0.3">
+        </a-plane>
 
+        <!-- Your camera / VR rig -->
+        <a-entity id="rig">
+            <a-camera></a-camera>
+        </a-entity>
     </a-scene>
+
+    <script>
+        // Grab the <video> and hook up getUserMedia
+        const videoEl = document.getElementById('camera');
+        navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' },
+            audio: false
+        })
+            .then(stream => {
+                videoEl.srcObject = stream;
+            })
+            .catch(err => {
+                console.error('Could not get user media:', err);
+            });
+    </script>
 </body>
 
 </html>
