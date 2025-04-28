@@ -3,52 +3,28 @@
 
 <head>
     <meta charset="utf-8">
-    <title>A-Frame AR-in-VR Demo</title>
+    <title>A-Frame + AR.js Marker Demo</title>
+    <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <!-- AR.js for marker-based AR -->
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
 </head>
 
-<body>
-    <!-- Scene with VR UI enabled -->
-    <a-scene vr-mode-ui="enabled: true" embedded>
-
-        <!-- Preload your webcam as a video asset -->
-        <a-assets>
-            <video id="camera" autoplay playsinline webkit-playsinline crossorigin="anonymous">
-            </video>
-        </a-assets>
-
-        <!-- Sky sphere showing the webcam feed -->
-        <a-sky material="shader: flat; src: #camera; side: back">
-        </a-sky>
-
-        <!-- A semi-transparent box floating in front of you -->
-        <a-box position="0 1.5 -3" rotation="0 45 0" material="color: blue; opacity: 0.7">
-        </a-box>
-
-        <!-- A faint ground plane for context -->
-        <a-plane rotation="-90 0 0" width="10" height="10" material="color: green; opacity: 0.3">
-        </a-plane>
-
-        <!-- Your camera / VR rig -->
-        <a-entity id="rig">
-            <a-camera></a-camera>
-        </a-entity>
+<body style="margin: 0; overflow: hidden;">
+    <!-- 
+      embedded: full-screen  
+      arjs: use the device camera, hide debug UI 
+    -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        <!-- marker entity (the “hiro” pattern) -->
+        <a-marker preset="hiro">
+            <!-- anything you put here will stick to the marker -->
+            <a-box position="0 0.5 0" material="color: orange; opacity: 0.8">
+            </a-box>
+        </a-marker>
+        <!-- invisible camera placeholder -->
+        <a-entity camera></a-entity>
     </a-scene>
-
-    <script>
-        // Grab the <video> and hook up getUserMedia
-        const videoEl = document.getElementById('camera');
-        navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' },
-            audio: false
-        })
-            .then(stream => {
-                videoEl.srcObject = stream;
-            })
-            .catch(err => {
-                console.error('Could not get user media:', err);
-            });
-    </script>
 </body>
 
 </html>
