@@ -3,11 +3,14 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>AR.js House On Marker</title>
+    <title>Interactive AR House</title>
     <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <!-- AR.js for A-Frame -->
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <!-- Gesture detector for touch -->
+    <script
+        src="https://unpkg.com/aframe-gesture-detector-component@5.0.0/dist/aframe-gesture-detector.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -34,31 +37,86 @@
 <body>
     <div id="status">Marker detected – loading house…</div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false" vr-mode-ui="enabled: false">
+    <a-scene embedded arjs="sourceType: webcam;" vr-mode-ui="enabled: false">
+
         <a-assets>
-            <a-asset-item id="houseModel" src="https://crudblobs.blob.core.windows.net/models/front-gable-house.glb">
-            </a-asset-item>
+            <a-asset-item id="houseModel"
+                src="https://crudblobs.blob.core.windows.net/models/front-gable-house.glb"></a-asset-item>
         </a-assets>
 
         <a-marker preset="hiro" emitevents="true" registerevents>
             <!--
-          No position offset (defaults to 0 0 0 = right on the marker)
-          Scale small enough to fit the marker area
+          Add:
+           - class="interactive" so cursor/raycaster hits it
+           - gesture-handler for drag/scale/rotate
         -->
-            <a-gltf-model src="#houseModel" scale="0.1 0.1 0.1" rotation="0 180 0">
-            </a-gltf-model>
+            <a-entity id="house" class="interactive" gltf-model="#houseModel" scale="0.1 0.1 0.1" rotation="0 180 0"
+                gesture-detector gesture-handler>
+            </a-entity>
         </a-marker>
 
-        <a-entity camera></a-entity>
+        <!-- Camera + cursor for tap events -->
+        <a-entity camera>
+            <a-cursor rayOrigin="mouse" fuse="false" raycaster="objects: .interactive">
+            </a-cursor>
+        </a-entity>
     </a-scene>
 
     <script>
-        // Show/hide status HUD
+        // Show/hide the HUD
         AFRAME.registerComponent('registerevents', {
             init: function () {
                 const status = document.getElementById('status');
                 this.el.addEventListener('markerFound', () => status.style.display = 'block');
                 this.el.addEventListener('markerLost', () => status.style.display = 'none');
+            }
+        });
+
+        // Handle tap + gestures on the house
+        AFRAME.registerComponent('gesture-handler', {
+            init: function () {
+                const el = this.el;
+                let baseScale = el.getAttribute('scale');
+                let dragging = false;
+
+                // Tap: toggle color
+                el.addEventListener('click', () => {
+                    const mat = el.getObject3D('mesh').material;
+                    mat.color.set(mat.color.getHex() === 0xffffff ? 0xffcc00 : 0xffffff);
+                });
+
+                // One-finger drag
+                this.el.sceneEl.addEventListener('onefingermove', evt => {
+                    if (!dragging && evt.detail.positionChange) dragging = true;
+                    if (dragging) {
+                        const pos = el.getAttribute('position');
+                        el.setAttribute('position', {
+                            x: pos.x + evt.detail.positionChange.x,
+                            y: pos.y,
+                            z: pos.z - evt.detail.positionChange.y
+                        });
+                    }
+                });
+                this.el.sceneEl.addEventListener('onefingerend', () => dragging = false);
+
+                // Pinch to scale
+                this.el.sceneEl.addEventListener('twofingermove', evt => {
+                    const scaleFactor = baseScale.x * evt.detail.spreadChange;
+                    el.setAttribute('scale', `${scaleFactor} ${scaleFactor} ${scaleFactor}`);
+                });
+                this.el.sceneEl.addEventListener('twofingerend', () => {
+                    baseScale = el.getAttribute('scale');
+                });
+
+                // Two-finger rotate (around Y axis)
+                this.el.sceneEl.addEventListener('twofingerrotate', evt => {
+                    const rot = el.getAttribute('rotation');
+                    el.setAttribute('rotation', {
+                        x: rot.x,
+                        y: rot.y + evt.detail.rotationChange,
+                        z: rot.z
+                    });
+                });
             }
         });
     </script>
