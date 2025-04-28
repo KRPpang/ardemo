@@ -3,26 +3,33 @@
 
 <head>
     <meta charset="utf-8">
-    <title>A-Frame + AR.js Marker Demo</title>
-    <!-- A-Frame core -->
+    <title>AR.js Marker Demo</title>
+    <!-- 1) A-Frame library -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <!-- AR.js for marker-based AR -->
+    <!-- 2) AR.js for A-Frame -->
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
 </head>
 
-<body style="margin: 0; overflow: hidden;">
+<body>
     <!-- 
-      embedded: full-screen  
-      arjs: use the device camera, hide debug UI 
+      embedded: full-screen   
+      arjs: enable marker AR, camera feed as background, hide UI 
     -->
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- marker entity (the “hiro” pattern) -->
+    <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
+        <!-- Use the built-in “hiro” marker pattern -->
         <a-marker preset="hiro">
-            <!-- anything you put here will stick to the marker -->
-            <a-box position="0 0.5 0" material="color: orange; opacity: 0.8">
+            <!-- Your AR object stuck to the marker -->
+            <a-box position="0 0.5 0" material="color: red; opacity: 0.8">
             </a-box>
         </a-marker>
-        <!-- invisible camera placeholder -->
+
+        <!-- Required camera entity -->
         <a-entity camera></a-entity>
     </a-scene>
 </body>
