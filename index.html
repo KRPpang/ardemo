@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Markerless AR + Hand-Tracking</title>
+    <title>Markerless AR + House Model</title>
     <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <!-- Hand-tracking controls -->
@@ -21,15 +21,21 @@
 <body>
     <a-scene embedded renderer="colorManagement: true; physicallyCorrectLights: true"
         webxr="optionalFeatures: hit-test, hand-tracking; referenceSpaceType: local-floor" ar-mode-ui="enabled: true">
+        <!-- Preload the house model from a public CDN -->
+        <a-assets>
+            <a-asset-item id="houseModel" src="https://crudblobs.blob.core.windows.net/models/house.glb">
+            </a-asset-item>
+        </a-assets>
+
         <!-- Reticle for hit-test placement -->
         <a-entity id="reticle" geometry="primitive: ring; radiusInner: 0.05; radiusOuter: 0.06" material="shader: flat"
             visible="false">
         </a-entity>
 
-        <!-- Box you’ll pinch & move -->
-        <a-box id="draggable" class="grabbable" position="0 0 -1" material="color: orange; opacity: 0.8" grabbable
+        <!-- House you’ll pinch & move -->
+        <a-entity id="house" class="grabbable" gltf-model="#houseModel" scale="0.3 0.3 0.3" visible="false" grabbable
             stretchable>
-        </a-box>
+        </a-entity>
 
         <!-- Hand-tracking input -->
         <a-entity hand-tracking-controls="hand: left"></a-entity>
@@ -42,7 +48,7 @@
     <script>
         const sceneEl = document.querySelector('a-scene');
         const reticle = document.getElementById('reticle');
-        const box = document.getElementById('draggable');
+        const house = document.getElementById('house');
 
         // When entering AR, set up hit-test loop
         sceneEl.addEventListener('enter-vr', async () => {
@@ -64,12 +70,12 @@
             });
         });
 
-        // On tap/place, attach box to the reticle
+        // On tap/place, attach house to the reticle
         document.body.addEventListener('click', () => {
             if (reticle.visible) {
-                box.object3D.position.copy(reticle.object3D.position);
-                box.object3D.quaternion.copy(reticle.object3D.quaternion);
-                box.setAttribute('visible', true);
+                house.object3D.position.copy(reticle.object3D.position);
+                house.object3D.quaternion.copy(reticle.object3D.quaternion);
+                house.setAttribute('visible', true);
             }
         });
     </script>
