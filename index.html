@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="utf-8">
-    <title>AR.js Marker Demo</title>
-    <!-- 1) A-Frame library -->
+    <title>AR.js Debug with On-Screen Alerts</title>
+    <!-- 1) A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <!-- 2) AR.js for A-Frame -->
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/aframe/build/aframe-ar.js"></script>
@@ -13,25 +13,61 @@
             margin: 0;
             overflow: hidden;
         }
+
+        /* HUD message style */
+        #status {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #0f0;
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-family: sans-serif;
+            display: none;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body>
-    <!-- 
-      embedded: full-screen   
-      arjs: enable marker AR, camera feed as background, hide UI 
-    -->
-    <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- Use the built-in “hiro” marker pattern -->
-        <a-marker preset="hiro">
-            <!-- Your AR object stuck to the marker -->
-            <a-box position="0 0.5 0" material="color: red; opacity: 0.8">
+    <!-- On-screen status div -->
+    <div id="status">Marker detected!</div>
+
+    <a-scene embedded vr-mode-ui="enabled: false"
+        arjs="sourceType: webcam; debugUIEnabled: true; trackingMethod: best;">
+        <a-assets>
+            <a-asset-item id="hiroPattern"
+                src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.2/three.js/examples/marker-training/examples/pattern-files/hiro.patt">
+            </a-asset-item>
+        </a-assets>
+
+        <a-marker type="pattern" url="#hiroPattern" registerevents>
+            <a-box position="0 0.5 0" material="color: lime; opacity: 0.8">
             </a-box>
         </a-marker>
 
-        <!-- Required camera entity -->
         <a-entity camera></a-entity>
     </a-scene>
+
+    <script>
+        // Grab our status div
+        const statusEl = document.getElementById('status');
+
+        // Component to show/hide the HUD message
+        AFRAME.registerComponent('registerevents', {
+            init: function () {
+                this.el.addEventListener('markerFound', () => {
+                    statusEl.style.display = 'block';
+                });
+                this.el.addEventListener('markerLost', () => {
+                    statusEl.style.display = 'none';
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
