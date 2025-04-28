@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>AR.js House Preview (Close-Up)</title>
+    <title>AR.js House On Marker</title>
     <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <!-- AR.js for A-Frame -->
@@ -35,35 +35,30 @@
     <div id="status">Marker detected – loading house…</div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false" vr-mode-ui="enabled: false">
-
-        <!-- Preload the house model -->
         <a-assets>
             <a-asset-item id="houseModel" src="https://crudblobs.blob.core.windows.net/models/front-gable-house.glb">
             </a-asset-item>
         </a-assets>
 
-        <!-- Marker that triggers the model -->
         <a-marker preset="hiro" emitevents="true" registerevents>
-            <!-- GLB model positioned close to marker -->
-            <a-gltf-model src="#houseModel" scale="1 1 1" position="0 0 -0.5" rotation="0 180 0">
+            <!--
+          No position offset (defaults to 0 0 0 = right on the marker)
+          Scale small enough to fit the marker area
+        -->
+            <a-gltf-model src="#houseModel" scale="0.1 0.1 0.1" rotation="0 180 0">
             </a-gltf-model>
         </a-marker>
 
-        <!-- Camera entity -->
         <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-        // Component to show/hide status HUD on marker events
+        // Show/hide status HUD
         AFRAME.registerComponent('registerevents', {
             init: function () {
-                const statusEl = document.getElementById('status');
-                this.el.addEventListener('markerFound', () => {
-                    statusEl.style.display = 'block';
-                });
-                this.el.addEventListener('markerLost', () => {
-                    statusEl.style.display = 'none';
-                });
+                const status = document.getElementById('status');
+                this.el.addEventListener('markerFound', () => status.style.display = 'block');
+                this.el.addEventListener('markerLost', () => status.style.display = 'none');
             }
         });
     </script>
