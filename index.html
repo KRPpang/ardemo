@@ -2,74 +2,75 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>Markerless AR + Hand-Tracking</title>
-    <!-- A-Frame core -->
+    <meta charset="utf-8" />
+    <title>AR.js VR-Headset Demo</title>
+    <!-- 1) A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <!-- Hand-tracking controls -->
-    <script src="https://unpkg.com/aframe-hand-tracking-component/dist/aframe-hand-tracking-component.min.js"></script>
-    <!-- Super-hands for grab events -->
-    <script src="https://unpkg.com/aframe-super-hands-component@^4.0.0/dist/aframe-super-hands.min.js"></script>
+    <!-- 2) AR.js for A-Frame (built from the master branch) -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
+
+        /* HUD message style */
+        #status {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #0f0;
+            font-family: sans-serif;
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            display: none;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body>
-    <a-scene embedded renderer="colorManagement: true; physicallyCorrectLights: true"
-        webxr="optionalFeatures: hit-test, hand-tracking; referenceSpaceType: local-floor" ar-mode-ui="enabled: true">
-        <!-- Reticle for hit-test placement -->
-        <a-entity id="reticle" geometry="primitive: ring; radiusInner: 0.05; radiusOuter: 0.06" material="shader: flat"
-            visible="false">
-        </a-entity>
+    <!-- On-screen status HUD -->
+    <div id="status">Marker detected!</div>
 
-        <!-- Box you’ll pinch & move -->
-        <a-box id="draggable" class="grabbable" position="0 0 -1" material="color: orange; opacity: 0.8" grabbable
-            stretchable>
-        </a-box>
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true;" vr-mode-ui="enabled: false">
+        <!-- Hiro marker with event logging -->
+        <a-marker preset="hiro" emitevents="true" registerevents>
+            <a-entity position="0 0.25 0">
+                <!-- Visor -->
+                <a-box width="0.6" height="0.25" depth="0.1" material="color: #222; metalness: 0.3; roughness: 0.7">
+                </a-box>
+                <!-- Left ear-cup -->
+                <a-cylinder position="-0.35 0 0" rotation="0 0 90" radius="0.06" height="0.15" material="color: #111">
+                </a-cylinder>
+                <!-- Right ear-cup -->
+                <a-cylinder position="0.35 0 0" rotation="0 0 90" radius="0.06" height="0.15" material="color: #111">
+                </a-cylinder>
+                <!-- Top head-strap -->
+                <a-torus position="0 0.18 0" radius="0.35" radius-tubular="0.02" rotation="90 0 0"
+                    material="color: #444; metalness: 0.2; roughness: 0.8">
+                </a-torus>
+            </a-entity>
+        </a-marker>
 
-        <!-- Hand-tracking input -->
-        <a-entity hand-tracking-controls="hand: left"></a-entity>
-        <a-entity hand-tracking-controls="hand: right"></a-entity>
-
-        <!-- AR camera -->
-        <a-entity camera look-controls="enabled: false"></a-entity>
+        <!-- A-Frame camera entity -->
+        <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-        const sceneEl = document.querySelector('a-scene');
-        const reticle = document.getElementById('reticle');
-        const box = document.getElementById('draggable');
-
-        // When entering AR, set up hit-test loop
-        sceneEl.addEventListener('enter-vr', async () => {
-            const session = sceneEl.renderer.xr.getSession();
-            if (!session || session.environmentBlendMode !== 'alpha-blend') return;
-
-            const refSpace = await session.requestReferenceSpace('local-floor');
-            const viewerSpace = await session.requestReferenceSpace('viewer');
-            const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-
-            sceneEl.renderer.setAnimationLoop((time, frame) => {
-                const hits = frame.getHitTestResults(hitTestSource);
-                if (hits.length) {
-                    const hit = hits[0].getPose(refSpace);
-                    reticle.object3D.position.copy(hit.transform.position);
-                    reticle.object3D.quaternion.copy(hit.transform.orientation);
-                    reticle.visible = true;
-                }
-            });
-        });
-
-        // On tap/place, attach box to the reticle
-        document.body.addEventListener('click', () => {
-            if (reticle.visible) {
-                box.object3D.position.copy(reticle.object3D.position);
-                box.object3D.quaternion.copy(reticle.object3D.quaternion);
-                box.setAttribute('visible', true);
+        // show/hide our HUD instead of alerts
+        AFRAME.registerComponent('registerevents', {
+            init: function () {
+                const statusEl = document.getElementById('status');
+                this.el.addEventListener('markerFound', () => {
+                    statusEl.style.display = 'block';
+                });
+                this.el.addEventListener('markerLost', () => {
+                    statusEl.style.display = 'none';
+                });
             }
         });
     </script>
