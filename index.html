@@ -2,19 +2,18 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <title>AR.js VR-Headset Demo</title>
-    <!-- 1) A-Frame core -->
+    <meta charset="utf-8">
+    <title>AR.js House Schematic</title>
+    <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <!-- 2) AR.js for A-Frame (built from the master branch) -->
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <!-- AR.js for A-Frame -->
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
 
-        /* HUD message style */
         #status {
             position: absolute;
             top: 1rem;
@@ -24,8 +23,8 @@
             color: #0f0;
             font-family: sans-serif;
             font-size: 1.2rem;
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
+            padding: .5rem 1rem;
+            border-radius: .25rem;
             display: none;
             pointer-events: none;
         }
@@ -33,44 +32,52 @@
 </head>
 
 <body>
-    <!-- On-screen status HUD -->
-    <div id="status">Marker detected!</div>
+    <div id="status">Marker detected – loading schematic…</div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true;" vr-mode-ui="enabled: false">
-        <!-- Hiro marker with event logging -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false" vr-mode-ui="enabled: false">
+        <!-- Preload your floor-plan texture -->
+        <a-assets>
+            <img id="floorplan" src="https://rawcdn.githack.com/your-repo/branch/floorplan.png">
+        </a-assets>
+
+        <!-- Marker trigger -->
         <a-marker preset="hiro" emitevents="true" registerevents>
-            <a-entity position="0 0.25 0">
-                <!-- Visor -->
-                <a-box width="0.6" height="0.25" depth="0.1" material="color: #222; metalness: 0.3; roughness: 0.7">
-                </a-box>
-                <!-- Left ear-cup -->
-                <a-cylinder position="-0.35 0 0" rotation="0 0 90" radius="0.06" height="0.15" material="color: #111">
-                </a-cylinder>
-                <!-- Right ear-cup -->
-                <a-cylinder position="0.35 0 0" rotation="0 0 90" radius="0.06" height="0.15" material="color: #111">
-                </a-cylinder>
-                <!-- Top head-strap -->
-                <a-torus position="0 0.18 0" radius="0.35" radius-tubular="0.02" rotation="90 0 0"
-                    material="color: #444; metalness: 0.2; roughness: 0.8">
-                </a-torus>
-            </a-entity>
+            <!-- Floor-plan as a flat plane, rotated to lie on the marker -->
+            <a-plane src="#floorplan" width="4" height="4" rotation="-90 0 0" position="0 0 0">
+            </a-plane>
+
+            <!-- Four semi-transparent walls -->
+            <a-box position="  -2 0.8  0" width="0.1" height="1.6" depth="4"
+                material="opacity:0.5; shader: standard"></a-box>
+            <a-box position="   2 0.8  0" width="0.1" height="1.6" depth="4"
+                material="opacity:0.5; shader: standard"></a-box>
+            <a-box position="  0 0.8  2" width="4" height="1.6" depth="0.1"
+                material="opacity:0.5; shader: standard"></a-box>
+            <a-box position="  0 0.8 -2" width="4" height="1.6" depth="0.1"
+                material="opacity:0.5; shader: standard"></a-box>
+
+            <!-- Simple roof outline (a thin, low cone) -->
+            <a-cone position="0 2 0" radius-bottom="2.2" radius-top="0" height="0.4" rotation="-90 0 0"
+                material="color:#333; opacity:0.6">
+            </a-cone>
+
+            <!-- Room labels -->
+            <a-text value="Living Room" position="-1 0.1  1" rotation="-90 0 0" side="double" color="#000"></a-text>
+            <a-text value="Kitchen" position=" 1 0.1  1" rotation="-90 0 0" side="double" color="#000"></a-text>
+            <a-text value="Bedroom" position="-1 0.1 -1" rotation="-90 0 0" side="double" color="#000"></a-text>
+            <a-text value="Bathroom" position=" 1 0.1 -1" rotation="-90 0 0" side="double" color="#000"></a-text>
         </a-marker>
 
-        <!-- A-Frame camera entity -->
         <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-        // show/hide our HUD instead of alerts
+        // Simple HUD show/hide
         AFRAME.registerComponent('registerevents', {
             init: function () {
-                const statusEl = document.getElementById('status');
-                this.el.addEventListener('markerFound', () => {
-                    statusEl.style.display = 'block';
-                });
-                this.el.addEventListener('markerLost', () => {
-                    statusEl.style.display = 'none';
-                });
+                const status = document.getElementById('status');
+                this.el.addEventListener('markerFound', () => status.style.display = 'block');
+                this.el.addEventListener('markerLost', () => status.style.display = 'none');
             }
         });
     </script>
