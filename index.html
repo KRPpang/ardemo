@@ -2,8 +2,8 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>AR.js House Schematic</title>
+    <meta charset="utf-8" />
+    <title>AR.js House Preview</title>
     <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <!-- AR.js for A-Frame -->
@@ -32,47 +32,24 @@
 </head>
 
 <body>
-    <div id="status">Marker detected – loading schematic…</div>
+    <div id="status">Marker detected – loading house…</div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false" vr-mode-ui="enabled: false">
-        <!-- Preload your floor-plan texture -->
         <a-assets>
-            <img id="floorplan" src="https://rawcdn.githack.com/your-repo/branch/floorplan.png">
+            <!-- point to the .glb on the public blob CDN -->
+            <a-asset-item id="houseModel" src="https://crudblobs.blob.core.windows.net/models/front-gable-house.glb">
+            </a-asset-item>
         </a-assets>
 
-        <!-- Marker trigger -->
         <a-marker preset="hiro" emitevents="true" registerevents>
-            <!-- Floor-plan as a flat plane, rotated to lie on the marker -->
-            <a-plane src="#floorplan" width="4" height="4" rotation="-90 0 0" position="0 0 0">
-            </a-plane>
-
-            <!-- Four semi-transparent walls -->
-            <a-box position="  -2 0.8  0" width="0.1" height="1.6" depth="4"
-                material="opacity:0.5; shader: standard"></a-box>
-            <a-box position="   2 0.8  0" width="0.1" height="1.6" depth="4"
-                material="opacity:0.5; shader: standard"></a-box>
-            <a-box position="  0 0.8  2" width="4" height="1.6" depth="0.1"
-                material="opacity:0.5; shader: standard"></a-box>
-            <a-box position="  0 0.8 -2" width="4" height="1.6" depth="0.1"
-                material="opacity:0.5; shader: standard"></a-box>
-
-            <!-- Simple roof outline (a thin, low cone) -->
-            <a-cone position="0 2 0" radius-bottom="2.2" radius-top="0" height="0.4" rotation="-90 0 0"
-                material="color:#333; opacity:0.6">
-            </a-cone>
-
-            <!-- Room labels -->
-            <a-text value="Living Room" position="-1 0.1  1" rotation="-90 0 0" side="double" color="#000"></a-text>
-            <a-text value="Kitchen" position=" 1 0.1  1" rotation="-90 0 0" side="double" color="#000"></a-text>
-            <a-text value="Bedroom" position="-1 0.1 -1" rotation="-90 0 0" side="double" color="#000"></a-text>
-            <a-text value="Bathroom" position=" 1 0.1 -1" rotation="-90 0 0" side="double" color="#000"></a-text>
+            <a-gltf-model src="#houseModel" scale="0.5 0.5 0.5" rotation="0 180 0" position="0 0 0">
+            </a-gltf-model>
         </a-marker>
 
         <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-        // Simple HUD show/hide
         AFRAME.registerComponent('registerevents', {
             init: function () {
                 const status = document.getElementById('status');
